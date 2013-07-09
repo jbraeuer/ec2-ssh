@@ -43,7 +43,7 @@ user="${hostparts[0]}"
 
 if [ -z "$inst" ]; then
   inst="$1"
-  user="ubuntu"
+  user="ec2-user"
 fi
 
 # support tag:value format for identifying instances
