@@ -59,7 +59,7 @@ else
 fi
 
 # get host from ec2-host command
-host=$(eval "$cmd $inst")
+host=$(eval "$cmd '$inst'")
 
 # pass all other parameters (${@:2}) to ssh allowing
 # things like: ec2-ssh nginx uptime
