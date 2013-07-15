@@ -19,14 +19,15 @@ Try `ec2-ssh --help' for more information."""
 
 
 def full_usage():
-    print >>stderr, """Usage: ec2-host [-k KEY] [-s SECRET] [-r REGION] [-t TAG] [NAME]
+    print >>stderr, """Usage: ec2-host [-k KEY] [-s SECRET] [-r REGION] [-t TAG] [-S sep] [NAME]
 Prints server host name.
 
       --help                 display this help and exit
   -k, --aws-key KEY          Amazon EC2 Key, defaults to ENV[AWS_ACCESS_KEY_ID]
   -s, --aws-secret SECRET    Amazon EC2 Secret, defaults to ENV[AWS_SECRET_ACCESS_KEY]
   -r, --region REGION        Amazon EC2 Region, defaults to us-east-1 or ENV[AWS_EC2_REGION]
-  -t, --tag TAG              Tag name for searching, defaults to 'Name'"""
+  -t, --tag TAG              Tag name for searching, defaults to 'Name'
+  -S, --separator SEP        Separator to use between hostname and dns"""
 
 
 def ec2_active_instances(label_tag, filters):
@@ -48,8 +49,8 @@ def ec2_active_instances(label_tag, filters):
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "hLk:s:r:t:",
-                                         ["help", "aws-key=", "aws-secret=", "region=", "tag="])
+        opts, args = getopt.getopt(argv, "hLk:s:r:t:S:",
+                                         ["help", "aws-key=", "aws-secret=", "region=", "tag=", "separator="])
     except getopt.GetoptError, err:
         print >>sys.stderr, err
         short_usage()
@@ -59,6 +60,7 @@ def main(argv):
     aws_secret = os.environ.get("AWS_SECRET_ACCESS_KEY")
     region = os.environ.get("AWS_EC2_REGION")
     tag = "Name"
+    separator="\t"
 
     for opt, arg in opts:
         if opt in ("-h", "--help"):
@@ -72,6 +74,8 @@ def main(argv):
             region = arg
         elif opt in ("-t", "--tag"):
             tag = arg
+        elif opt in ("-S", "--separator"):
+            separator = arg
 
     if not aws_key or not aws_secret:
         if not aws_key:
@@ -115,7 +119,7 @@ def main(argv):
         return
     elif numinstances == 0 or numinstances > 1:
         for pair in sorted(instances, key=lambda p: p[0]):
-            print "%s\t%s" % pair
+            print "%s%s%s" % (pair[0], separator, pair[1])
 
         sys.exit(0)
         return
