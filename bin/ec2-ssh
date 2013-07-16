@@ -15,6 +15,8 @@ For a list of instances, run ec2-host without any paramteres
   -s, SECRET    Amazon EC2 Secret, defaults to \$AWS_SECRET_ACCESS_KEY
   -r, REGION    Amazon EC2 Region, defaults to us-east-1
   -t, TAG       Tag name for searching, defaults to 'Name'
+  -U, USER      Set default user to 'USER' (default 'ubuntu')
+  -S            Disable SSH security (host key checks)
 EOF
 }
 
@@ -23,13 +25,16 @@ test $# -eq 0 && { usage; exit; }
 
 # Process options
 cmd="ec2-host"
-while getopts ":hk:s:r:t:" opt; do
+default_user="ubuntu"
+while getopts ":hk:s:r:t:U:S" opt; do
     case $opt in
         h  ) usage; exit 1;;
         k  ) cmd="$cmd -k $OPTARG";;
         s  ) cmd="$cmd -s $OPTARG";;
         r  ) cmd="$cmd -r $OPTARG";;
         t  ) cmd="$cmd -t $OPTARG";;
+        U  ) default_user="$OPTARG";;
+        S  ) ssh_opts="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=false";;
         \? ) usage; exit 1
     esac
 done
@@ -43,7 +48,7 @@ user="${hostparts[0]}"
 
 if [ -z "$inst" ]; then
   inst="$1"
-  user="ubuntu"
+  user="$default_user"
 fi
 
 # support tag:value format for identifying instances
@@ -67,4 +72,4 @@ cmd="echo \\\". ~/.bashrc && PS1='\[\e]0;$inst: \w\\\a\]\[\\\033[01;32m\]$inst\[
 if test "${@:2}"; then
     cmd="${@:2}"
 fi
-test -n "$host" && echo "Connecting to $host." && exec sh -c "ssh -t $user@$host \"$cmd\""
+test -n "$host" && echo "Connecting to $host." && exec sh -c "ssh $ssh_opts -t $user@$host \"$cmd\""
